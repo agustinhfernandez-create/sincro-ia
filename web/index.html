@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sincro IA — Tu entorno de trabajo con IA, ordenado</title>
+<meta name="description" content="Un entorno de trabajo con IA listo para instalar: Claude como orquestador, memoria de proyectos, mapas de dependencias y flujo ordenado. Instalá, cargá tus claves y empezá." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul:#2D9CDB; --azul-d:#1B7FB8; --naranja:#FF8A3D; --slate:#1E293B;
+    --gris:#F5F7FA; --gris-b:#E2E8F0; --muted:#64748B; --blanco:#fff;
+    --radio:14px; --sombra:0 10px 40px rgba(30,41,59,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--slate);background:var(--blanco);line-height:1.6}
+  h1,h2,h3{font-family:Poppins,sans-serif;line-height:1.2;letter-spacing:-.02em}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-family:Inter;
+       font-weight:600;font-size:1rem;padding:14px 26px;border-radius:var(--radio);transition:.18s;white-space:nowrap}
+  .btn-primary{background:var(--naranja);color:#fff;box-shadow:0 8px 20px rgba(255,138,61,.35)}
+  .btn-primary:hover{transform:translateY(-2px);background:#ff7a22}
+  .btn-ghost{background:transparent;color:var(--slate);border:1.5px solid var(--gris-b)}
+  .btn-ghost:hover{border-color:var(--azul);color:var(--azul)}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--gris-b)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:Poppins;font-weight:700;font-size:1.2rem}
+  .logo .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--azul),var(--naranja))}
+  .nav-links{display:flex;gap:28px;align-items:center}
+  .nav-links a{color:var(--muted);font-weight:500;font-size:.95rem}
+  .nav-links a:hover{color:var(--slate)}
+  @media(max-width:760px){.nav-links a:not(.btn){display:none}}
+
+  /* HERO */
+  .hero{padding:84px 0 64px;background:
+    radial-gradient(1200px 400px at 80% -10%, rgba(45,156,219,.10), transparent),
+    radial-gradient(900px 360px at 0% 20%, rgba(255,138,61,.08), transparent)}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:36px}}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--gris-b);
+         color:var(--muted);font-size:.82rem;font-weight:500;padding:6px 14px;border-radius:999px;margin-bottom:22px}
+  .badge b{color:var(--azul)}
+  .hero h1{font-size:clamp(2.1rem,4.5vw,3.25rem);font-weight:700}
+  .hero h1 .hl{color:var(--azul)}
+  .hero p.lead{font-size:1.18rem;color:var(--muted);margin:20px 0 30px;max-width:540px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-mini{margin-top:18px;font-size:.86rem;color:var(--muted)}
+
+  /* VENTANA mock "entorno ordenado" */
+  .window{background:#0f1b2d;border-radius:16px;box-shadow:var(--sombra);overflow:hidden;border:1px solid #233248}
+  .win-bar{display:flex;align-items:center;gap:7px;padding:12px 14px;background:#13233a;border-bottom:1px solid #233248}
+  .win-bar i{width:11px;height:11px;border-radius:50%}
+  .win-bar i:nth-child(1){background:#ff5f57}.win-bar i:nth-child(2){background:#febc2e}.win-bar i:nth-child(3){background:#28c840}
+  .win-bar span{margin-left:10px;color:#8aa0bd;font-size:.78rem;font-family:Inter}
+  .win-body{display:grid;grid-template-columns:150px 1fr;min-height:300px}
+  .win-side{background:#0c1626;padding:14px 10px;border-right:1px solid #233248}
+  .tree{color:#9fb4d1;font-size:.82rem;font-family:Inter}
+  .tree .it{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;margin-bottom:2px}
+  .tree .it.act{background:#16recolor;background:#15324f;color:#cfe6fb}
+  .tree .it small{opacity:.6}
+  .win-main{padding:18px;color:#cbd9ec;font-family:Inter;font-size:.86rem}
+  .chat-l{display:flex;gap:10px;margin-bottom:14px}
+  .chat-l .av{flex:0 0 26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--azul),var(--naranja))}
+  .chat-l .bub{background:#13233a;border:1px solid #233248;border-radius:10px;padding:9px 12px;color:#aebfd6}
+  .chat-l.me .bub{background:#15324f;color:#dcebfb}
+  .pill{display:inline-block;background:#15324f;color:#7fc4f0;border-radius:6px;padding:2px 8px;font-size:.74rem;margin:2px 4px 2px 0}
+
+  /* SECCIONES */
+  section{padding:72px 0}
+  .eyebrow{color:var(--naranja);font-weight:600;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+  .h2{font-size:clamp(1.7rem,3.4vw,2.4rem);font-weight:700;margin:10px 0 14px}
+  .sub{color:var(--muted);font-size:1.08rem;max-width:620px}
+  .center{text-align:center;margin:0 auto}
+
+  /* PROBLEMA/SOLUCION */
+  .ps{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:44px}
+  @media(max-width:760px){.ps{grid-template-columns:1fr}}
+  .ps-card{border-radius:var(--radio);padding:30px;border:1px solid var(--gris-b)}
+  .ps-card.bad{background:var(--gris)}
+  .ps-card.good{background:linear-gradient(180deg,#fff, #f4fbff);border-color:#cfe9fa}
+  .ps-card h3{font-size:1.15rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .ps-card ul{list-style:none}
+  .ps-card li{padding:8px 0;padding-left:28px;position:relative;color:var(--slate)}
+  .ps-card.bad li::before{content:"✕";position:absolute;left:0;color:#cbd5e1;font-weight:700}
+  .ps-card.good li::before{content:"✓";position:absolute;left:0;color:var(--azul);font-weight:700}
+
+  /* FEATURES */
+  .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}
+  @media(max-width:860px){.feats{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.feats{grid-template-columns:1fr}}
+  .feat{background:#fff;border:1px solid var(--gris-b);border-radius:var(--radio);padding:26px;transition:.18s}
+  .feat:hover{box-shadow:var(--sombra);transform:translateY(-3px);border-color:#cfe9fa}
+  .feat .ic{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;margin-bottom:16px;
+            background:rgba(45,156,219,.10);font-size:1.3rem}
+  .feat h3{font-size:1.06rem;margin-bottom:8px}
+  .feat p{color:var(--muted);font-size:.95rem}
+
+  /* PASOS */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:46px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{position:relative;padding:28px;border-radius:var(--radio);background:var(--gris)}
+  .step .n{width:38px;height:38px;border-radius:10px;background:var(--slate);color:#fff;font-family:Poppins;
+           font-weight:700;display:grid;place-items:center;margin-bottom:14px}
+  .step h3{font-size:1.1rem;margin-bottom:6px}
+  .step p{color:var(--muted);font-size:.95rem}
+
+  /* PRECIO */
+  .price-wrap{display:flex;justify-content:center;margin-top:44px}
+  .price{background:#fff;border:1px solid var(--gris-b);border-radius:20px;padding:40px;max-width:440px;width:100%;
+         text-align:center;box-shadow:var(--sombra)}
+  .price .tag{display:inline-block;background:rgba(45,156,219,.10);color:var(--azul);font-weight:600;
+              padding:6px 14px;border-radius:999px;font-size:.85rem;margin-bottom:18px}
+  .price .num{font-family:Poppins;font-weight:700;font-size:3rem;color:var(--slate)}
+  .price .num small{font-size:1rem;color:var(--muted);font-weight:500}
+  .price .once{color:var(--muted);margin:4px 0 22px}
+  .price ul{list-style:none;text-align:left;margin:22px 0}
+  .price li{padding:7px 0 7px 28px;position:relative}
+  .price li::before{content:"✓";position:absolute;left:0;color:var(--azul);font-weight:700}
+  .price .btn{width:100%;justify-content:center;margin-top:6px}
+  .price .nota{font-size:.8rem;color:var(--muted);margin-top:14px}
+
+  /* FAQ */
+  .faq{max-width:760px;margin:46px auto 0}
+  details{background:#fff;border:1px solid var(--gris-b);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  details[open]{border-color:#cfe9fa}
+  summary{cursor:pointer;padding:18px 22px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--azul);font-size:1.4rem;font-weight:400}
+  details[open] summary::after{content:"–"}
+  details p{padding:0 22px 20px;color:var(--muted)}
+
+  /* CTA final */
+  .final{background:linear-gradient(135deg,var(--slate),#0f1b2d);color:#fff;border-radius:24px;
+         padding:56px 40px;text-align:center;margin:40px 0}
+  .final h2{font-size:clamp(1.6rem,3vw,2.2rem)}
+  .final p{color:#9fb4d1;margin:14px auto 26px;max-width:520px}
+
+  footer{border-top:1px solid var(--gris-b);padding:34px 0;color:var(--muted);font-size:.9rem}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+  /* Modal compra */
+  .modal{position:fixed;inset:0;background:rgba(15,27,45,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal.on{display:flex}
+  .modal-card{background:#fff;border-radius:18px;padding:32px;max-width:420px;width:100%;box-shadow:var(--sombra)}
+  .modal-card h3{font-size:1.3rem;margin-bottom:8px}
+  .modal-card p{color:var(--muted);font-size:.95rem;margin-bottom:18px}
+  .modal-card label{font-size:.85rem;font-weight:600;display:block;margin-bottom:6px}
+  .modal-card input{width:100%;padding:13px 14px;border:1.5px solid var(--gris-b);border-radius:10px;font-size:1rem;font-family:Inter}
+  .modal-card input:focus{outline:0;border-color:var(--azul)}
+  .modal-card .btn{width:100%;justify-content:center;margin-top:16px}
+  .modal-card .x{float:right;cursor:pointer;color:var(--muted);font-size:1.4rem;line-height:1}
+  .err{color:#e11d48;font-size:.85rem;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><span class="dot"></span> Sincro IA</div>
+    <div class="nav-links">
+      <a href="#solucion">Solución</a>
+      <a href="#incluye">Qué incluye</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#faq">Preguntas</a>
+      <a href="#precio" class="btn btn-primary" style="padding:10px 20px">Comprar</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="badge">⚡ Para Windows · <b>Listo en minutos</b></span>
+      <h1>Tu trabajo con IA, por fin <span class="hl">ordenado</span>.</h1>
+      <p class="lead">Sincro IA instala un entorno completo donde la IA es tu orquestadora:
+        recuerda cada proyecto, mapea sus dependencias y sigue un método de trabajo claro.
+        Vos cargás tus claves y empezás.</p>
+      <div class="hero-cta">
+        <button class="btn btn-primary" onclick="abrirCompra()">Comprar licencia — $20.000</button>
+        <a class="btn btn-ghost" href="#como">Ver cómo funciona</a>
+      </div>
+      <p class="hero-mini">Pago único · Una PC · Sin suscripción · Usás tus propias APIs</p>
+    </div>
+
+    <!-- mock entorno ordenado -->
+    <div class="window" aria-hidden="true">
+      <div class="win-bar"><i></i><i></i><i></i><span>SincroIA — Workspace</span></div>
+      <div class="win-body">
+        <div class="win-side">
+          <div class="tree">
+            <div class="it">📁 Proyectos</div>
+            <div class="it act">&nbsp;&nbsp;📂 Tienda online</div>
+            <div class="it">&nbsp;&nbsp;📂 App de turnos</div>
+            <div class="it">&nbsp;&nbsp;📄 MEMORIA <small>·md</small></div>
+            <div class="it">&nbsp;&nbsp;📄 hitos <small>·md</small></div>
+            <div class="it">&nbsp;&nbsp;🗺️ dependencias</div>
+          </div>
+        </div>
+        <div class="win-main">
+          <div class="chat-l me"><div class="av"></div><div class="bub">¿En qué quedamos la última vez?</div></div>
+          <div class="chat-l"><div class="av"></div><div class="bub">
+            Recupero la memoria del proyecto…<br>
+            <span class="pill">✓ contexto cargado</span><span class="pill">✓ mapa de dependencias</span><br>
+            Seguíamos con el checkout. ¿Avanzamos?</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PROBLEMA / SOLUCION -->
+<section id="solucion">
+  <div class="wrap">
+    <div class="center" style="max-width:640px">
+      <span class="eyebrow">El problema</span>
+      <h2 class="h2">Trabajar con IA es potente. Y un caos.</h2>
+      <p class="sub center">Cada chat empieza de cero, pierde el contexto y desordena tus proyectos.
+        Sincro IA convierte eso en un método.</p>
+    </div>
+    <div class="ps">
+      <div class="ps-card bad">
+        <h3>🌀 Sin un entorno</h3>
+        <ul>
+          <li>La IA olvida lo que hiciste ayer</li>
+          <li>Repetís el contexto en cada conversación</li>
+          <li>Archivos y decisiones sueltas por todos lados</li>
+          <li>Configurar herramientas lleva horas</li>
+        </ul>
+      </div>
+      <div class="ps-card good">
+        <h3>✨ Con Sincro IA</h3>
+        <ul>
+          <li>Memoria persistente por proyecto</li>
+          <li>Arranca cada sesión cargando el contexto solo</li>
+          <li>Una estructura ordenada para todo tu trabajo</li>
+          <li>Todo preinstalado: abrís y funciona</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUE INCLUYE -->
+<section id="incluye" style="background:var(--gris)">
+  <div class="wrap">
+    <div class="center" style="max-width:640px">
+      <span class="eyebrow">Qué incluye</span>
+      <h2 class="h2">Un equipo de herramientas, ya coordinado</h2>
+      <p class="sub center">No es un chat más. Es un entorno donde cada pieza tiene su rol.</p>
+    </div>
+    <div class="feats">
+      <div class="feat"><div class="ic">🧠</div><h3>IA orquestadora</h3>
+        <p>Claude dirige el trabajo: planifica, ejecuta y mantiene el método en cada sesión.</p></div>
+      <div class="feat"><div class="ic">💾</div><h3>Memoria de proyectos</h3>
+        <p>Cada proyecto guarda sus decisiones, hitos y errores. Nada se vuelve a explicar.</p></div>
+      <div class="feat"><div class="ic">🗺️</div><h3>Mapa de dependencias</h3>
+        <p>Visualizá cómo se conecta tu código antes de tocarlo. Menos sorpresas.</p></div>
+      <div class="feat"><div class="ic">📚</div><h3>Consulta de documentos</h3>
+        <p>Conectá tus manuales y especificaciones para respuestas con fundamento.</p></div>
+      <div class="feat"><div class="ic">⚙️</div><h3>Flujos de trabajo</h3>
+        <p>Métodos probados para crear features, encontrar bugs y arrancar proyectos.</p></div>
+      <div class="feat"><div class="ic">🔑</div><h3>Tus claves, tu control</h3>
+        <p>Usás tus propias cuentas de IA. Nada pasa por nosotros. Privado y local.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como">
+  <div class="wrap">
+    <div class="center" style="max-width:640px">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2 class="h2">De cero a trabajando, en 3 pasos</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Comprá y descargá</h3>
+        <p>Pagás la licencia con Mercado Pago y descargás el instalador para Windows.</p></div>
+      <div class="step"><div class="n">2</div><h3>Instalá</h3>
+        <p>Un solo instalador deja todo el entorno listo. Pegás tu clave y tus APIs.</p></div>
+      <div class="step"><div class="n">3</div><h3>Empezá a trabajar</h3>
+        <p>Abrís, la IA carga el contexto y seguís donde lo dejaste. Así de simple.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRECIO -->
+<section id="precio" style="background:var(--gris)">
+  <div class="wrap">
+    <div class="center" style="max-width:640px">
+      <span class="eyebrow">Precio</span>
+      <h2 class="h2">Una vez. Tuyo para siempre.</h2>
+      <p class="sub center">Sin suscripciones ni sorpresas. Pagás una vez y el entorno es tuyo.</p>
+    </div>
+    <div class="price-wrap">
+      <div class="price">
+        <span class="tag">Licencia Sincro IA</span>
+        <div class="num">$20.000 <small>ARS</small></div>
+        <div class="once">Pago único · 1 PC</div>
+        <ul>
+          <li>Entorno completo preinstalado</li>
+          <li>Memoria, mapas y flujos de trabajo</li>
+          <li>Actualizaciones del entorno</li>
+          <li>Funciona con tus propias APIs</li>
+        </ul>
+        <button class="btn btn-primary" onclick="abrirCompra()">Comprar ahora</button>
+        <a href="/descargas/SincroIA-Setup.exe" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px">⬇ Descargar instalador</a>
+        <p class="nota">Descargá gratis el instalador; la licencia se activa al instalar. Necesitás tus cuentas de Claude y Gemini.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="center" style="max-width:640px">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2 class="h2">Lo que solés preguntar</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>¿Qué es exactamente Sincro IA?</summary>
+        <p>Un entorno de trabajo para Windows donde la IA actúa como orquestadora: recuerda tus
+           proyectos, mapea su código y sigue un método ordenado. Vos lo instalás con un solo
+           ejecutable y cargás tus propias claves.</p></details>
+      <details><summary>¿Necesito saber programar?</summary>
+        <p>No para instalarlo: el instalador hace todo. El entorno es útil tanto para quienes
+           programan como para quienes solo quieren trabajar ordenado con IA.</p></details>
+      <details><summary>¿Por qué tengo que poner mis propias claves (APIs)?</summary>
+        <p>Porque así vos controlás tu cuenta y tu gasto, y tus datos nunca pasan por nosotros.
+           Lo que comprás es el entorno y su configuración, no el consumo de las IAs.</p></details>
+      <details><summary>¿Qué cuentas necesito?</summary>
+        <p>Una cuenta de Claude (Anthropic) y una clave de Gemini (Google). Opcionalmente
+           NotebookLM para consultar documentos. El instalador te guía para cargarlas.</p></details>
+      <details><summary>¿Funciona sin internet?</summary>
+        <p>No. La inteligencia trabaja en la nube, así que necesitás conexión. El entorno y tus
+           archivos viven en tu PC.</p></details>
+      <details><summary>¿Cómo recibo mi licencia?</summary>
+        <p>Apenas se aprueba el pago, te mostramos la clave en pantalla y te la enviamos por email.
+           Esa clave la pegás en el instalador para activar el entorno.</p></details>
+      <details><summary>¿En cuántas computadoras puedo usarla?</summary>
+        <p>Cada licencia activa una PC. Si cambiás de equipo, escribinos.</p></details>
+      <details><summary>¿Es un pago único o una suscripción?</summary>
+        <p>Pago único. No hay cobros recurrentes.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="final">
+      <h2>Ordená tu trabajo con IA hoy</h2>
+      <p>Instalá una vez, cargá tus claves y dejá de empezar de cero en cada conversación.</p>
+      <button class="btn btn-primary" onclick="abrirCompra()">Comprar licencia — $20.000</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo"><span class="dot"></span> Sincro IA</div>
+    <div>© <span id="y"></span> Sincro IA · Hecho en Argentina</div>
+  </div>
+</footer>
+
+<!-- MODAL COMPRA -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <span class="x" onclick="cerrarCompra()">×</span>
+    <h3>Comprar Sincro IA</h3>
+    <p>Dejanos tu email para enviarte la licencia. Te llevamos a Mercado Pago para completar el pago.</p>
+    <label for="email">Tu email</label>
+    <input id="email" type="email" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
+    <div class="err" id="err"></div>
+    <button class="btn btn-primary" id="goPay" onclick="pagar()">Ir a pagar — $20.000</button>
+  </div>
+</div>
+
+<script>
+  // === Config ===
+  var API = "https://sincro-ia-licencias.agustinhfernandez.workers.dev";
+
+  document.getElementById('y').textContent = new Date().getFullYear();
+
+  function abrirCompra(){ document.getElementById('modal').classList.add('on'); document.getElementById('email').focus(); }
+  function cerrarCompra(){ document.getElementById('modal').classList.remove('on'); }
+  document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this) cerrarCompra(); });
+
+  async function pagar(){
+    var email = document.getElementById('email').value.trim();
+    var err = document.getElementById('err');
+    var btn = document.getElementById('goPay');
+    err.style.display='none';
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent='Ingresá un email válido.'; err.style.display='block'; return; }
+    btn.disabled=true; btn.textContent='Generando pago…';
+    try{
+      var r = await fetch(API + '/crear-pago', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email:email})
+      });
+      var data = await r.json();
+      if(data.init_point){ window.location.href = data.init_point; }
+      else { throw new Error('sin init_point'); }
+    }catch(e){
+      err.textContent='No se pudo iniciar el pago. Probá de nuevo en un momento.'; err.style.display='block';
+      btn.disabled=false; btn.textContent='Ir a pagar — $20.000';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+Aca va el instalador compilado: SincroIA-Setup.exe
+
+Cuando compiles el .exe con Inno Setup (instalador/setup.iss),
+copialo a esta carpeta como "SincroIA-Setup.exe" y volvé a desplegar la web.
+
+El link de descarga de la web apunta a /descargas/SincroIA-Setup.exe
