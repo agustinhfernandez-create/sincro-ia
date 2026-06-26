@@ -54,3 +54,10 @@
 - NO compilable en este entorno (sin Inno Setup) → se compila en la PC del usuario. Placeholders `<<<`: MyLicenseApi (URL Worker), MyAppPublisher, SetupIconFile (opcional).
 - instalador/README actualizado con pasos de compilación.
 - ESTADO: piezas de código del MVP completas (Capa B + bootstrap + Worker + .iss). Falta EJECUTAR: deploy Worker (KV/secrets/MP), compilar .exe, web de venta, prueba PC limpia. Seguridad pendiente: firma webhook MP.
+
+## 2026-06-26 — Repo GitHub
+- Repo privado creado y pusheado: **github.com/agustinhfernandez-create/sincro-ia** (cuenta gh: agustinhfernandez-create).
+- .gitignore protege secretos (.env, *.db, node_modules, .wrangler, *.exe). ruvector.db excluido.
+- Commit inicial: 27 archivos (plantilla + instalador + licencias-worker + docs/adr). Sin secretos.
+- MP: elegido **Checkout Pro** (coincide con /crear-pago del Worker).
+- PENDIENTE usuario: gh OK ✓; falta deploy Worker (token MP via wrangler secret, NO compartir), compilar .exe (Inno Setup), prueba PC limpia.

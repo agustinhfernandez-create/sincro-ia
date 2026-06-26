@@ -105,6 +105,45 @@ async function crearPago(request, env) {
 }
 
 // --------------------------------------------------------------------
+// Verifica la firma del webhook de Mercado Pago (x-signature).
+// Manifest: id:<data.id>;request-id:<x-request-id>;ts:<ts>;
+// HMAC-SHA256 con MP_WEBHOOK_SECRET, comparado con v1.
+// --------------------------------------------------------------------
+async function firmaValida(request, env, dataId) {
+  const secret = env.MP_WEBHOOK_SECRET;
+  if (!secret) return false; // fail-closed: sin secret no se confia en nadie
+
+  const xSignature = request.headers.get("x-signature") || "";
+  const xRequestId = request.headers.get("x-request-id") || "";
+
+  // x-signature: "ts=123456,v1=abcdef..."
+  let ts = "", v1 = "";
+  for (const parte of xSignature.split(",")) {
+    const [k, val] = parte.split("=");
+    if (k?.trim() === "ts") ts = (val || "").trim();
+    if (k?.trim() === "v1") v1 = (val || "").trim();
+  }
+  if (!ts || !v1 || !dataId) return false;
+
+  // data.id alfanumerico va en minusculas segun la doc de MP
+  const id = String(dataId).toLowerCase();
+  const manifest = `id:${id};request-id:${xRequestId};ts:${ts};`;
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sigBuf = await crypto.subtle.sign("HMAC", key, enc.encode(manifest));
+  const hex = [...new Uint8Array(sigBuf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  // comparacion de longitud constante
+  if (hex.length !== v1.length) return false;
+  let diff = 0;
+  for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ v1.charCodeAt(i);
+  return diff === 0;
+}
+
+// --------------------------------------------------------------------
 // 2) Webhook de Mercado Pago -> generar licencia
 // --------------------------------------------------------------------
 async function webhook(request, env) {
@@ -116,6 +155,10 @@ async function webhook(request, env) {
   const pagoId = body?.data?.id || url.searchParams.get("data.id");
 
   if (tipo !== "payment" || !pagoId) return json({ ok: true, ignored: true });
+
+  // SEGURIDAD: rechazar webhooks sin firma valida (evita que cualquiera genere licencias)
+  if (!(await firmaValida(request, env, pagoId)))
+    return json({ error: "firma invalida" }, 401);
 
   // Verificar el pago real contra la API de MP (no confiar en el webhook a ciegas)
   const r = await fetch(`https://api.mercadopago.com/v1/payments/${pagoId}`, {

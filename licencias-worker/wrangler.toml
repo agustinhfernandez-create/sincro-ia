@@ -17,5 +17,6 @@ binding = "LICENCIAS"
 id      = "REEMPLAZAR_KV_ID"
 
 # --- Secrets (NO van aca; cargar con wrangler secret put) ---
-#   wrangler secret put MP_ACCESS_TOKEN
-#   wrangler secret put RESEND_API_KEY   (opcional)
+#   wrangler secret put MP_ACCESS_TOKEN    (access token de Mercado Pago)
+#   wrangler secret put MP_WEBHOOK_SECRET  (clave secreta del webhook, panel MP)
+#   wrangler secret put RESEND_API_KEY     (opcional, email)

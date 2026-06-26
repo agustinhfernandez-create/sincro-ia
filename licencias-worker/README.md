@@ -27,6 +27,7 @@ Instalador -> POST /validate {license_key, machine_id} -> KV -> valid:true/false
 npm i -g wrangler
 wrangler kv namespace create LICENCIAS      # pegar el id en wrangler.toml
 wrangler secret put MP_ACCESS_TOKEN          # access token de Mercado Pago
+wrangler secret put MP_WEBHOOK_SECRET        # clave secreta del webhook (panel MP)
 wrangler secret put RESEND_API_KEY           # opcional (email)
 # Editar wrangler.toml: PRICE_ARS, APP_ORIGIN (URL del worker), EMAIL_FROM
 wrangler deploy
@@ -34,7 +35,11 @@ wrangler deploy
 Después: en Mercado Pago, configurar el webhook apuntando a `<APP_ORIGIN>/webhook` (o lo setea /crear-pago via notification_url).
 Y en el instalador, pasar `-LicenseApi <APP_ORIGIN>`.
 
+## Seguridad
+- **Firma del webhook MP: implementada** (HMAC-SHA256 sobre `id:<data.id>;request-id:<x-request-id>;ts:<ts>;`,
+  comparada con `v1` del header `x-signature`). Fail-closed: sin `MP_WEBHOOK_SECRET` configurado, el
+  webhook rechaza todo (401). Sacá la clave secreta del webhook en el panel de Mercado Pago.
+
 ## Pendiente / mejoras
 - Email: usa Resend (free 100/día, requiere dominio verificado para `from` propio; sin eso usa `onboarding@resend.dev`).
-- Validación de firma del webhook de MP (x-signature) — recomendado antes de producción.
 - Página de gracias y web de venta pueden moverse a CF Pages (este Worker ya sirve /gracias mínima).
