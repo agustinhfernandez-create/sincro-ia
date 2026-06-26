@@ -1,14 +1,8 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2D9CDB"/>
-      <stop offset="1" stop-color="#FF8A3D"/>
-    </linearGradient>
-  </defs>
-  <!-- fondo -->
-  <rect width="256" height="256" rx="58" fill="url(#g)"/>
+  <!-- fondo azul (color del HTML) -->
+  <rect width="256" height="256" rx="58" fill="#3b82f6"/>
   <!-- conexiones (orquestacion) -->
-  <g stroke="#fff" stroke-width="9" stroke-linecap="round" opacity="0.92">
+  <g stroke="#fff" stroke-width="9" stroke-linecap="round" opacity="0.95">
     <line x1="128" y1="128" x2="72"  y2="72"/>
     <line x1="128" y1="128" x2="190" y2="92"/>
     <line x1="128" y1="128" x2="92"  y2="190"/>
@@ -23,5 +17,5 @@
   </g>
   <!-- nodo central (orquestador) -->
   <circle cx="128" cy="128" r="30" fill="#fff"/>
-  <circle cx="128" cy="128" r="14" fill="url(#g)"/>
+  <circle cx="128" cy="128" r="13" fill="#3b82f6"/>
 </svg>
