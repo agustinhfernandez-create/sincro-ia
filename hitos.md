@@ -75,3 +75,11 @@
 - Webhook MP configurado (Modo productivo, evento Pagos) → URL/webhook.
 - **PROBADO**: GET / responde ok; POST /crear-pago devuelve init_point real de MP (preferencia creada). Cobro funciona de punta a punta.
 - PENDIENTE: probar flujo completo con pago real (webhook → genera licencia en KV → email/gracias), web de venta, compilar .exe (Inno Setup), prueba PC limpia. Email Resend sin configurar (entrega = página /gracias por ahora).
+
+## 2026-06-26 (cont.) — Web de venta EN LÍNEA
+- **web/index.html**: landing moderna, foco "entorno ordenado" (no IA genérica). Hero con mock de workspace ordenado, problema/solución, 6 features, 3 pasos, precio $20.000 ARS, FAQ (8), modal de compra. Paleta DISEÑO.md (azul #2D9CDB + naranja #FF8A3D), Poppins/Inter.
+- Compra integrada: modal pide email → `fetch /crear-pago` → redirige a init_point de MP.
+- Descarga libre (opción A): botón → `/descargas/SincroIA-Setup.exe` (placeholder hasta compilar el .exe; subir el exe a web/descargas/ y redeploy).
+- **Deployada en Cloudflare Pages**: proyecto `sincro-ia-web` → https://sincro-ia-web.pages.dev (verificada 200 + contenido). Fix CSS typo + redeploy.
+- Dominio del usuario: **sincro-ia.com.ar** (NIC.ar) — PENDIENTE conectar (custom domain en Pages + NS a Cloudflare o CNAME).
+- ESTADO PRODUCTO: Capa B ✓, bootstrap ✓, setup.iss ✓, Worker licencias EN PROD ✓, web EN LÍNEA ✓. Falta: conectar dominio, compilar .exe + subirlo a /descargas, prueba PC limpia, (opcional) email Resend.

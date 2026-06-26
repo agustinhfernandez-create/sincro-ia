@@ -30,7 +30,7 @@ OutputBaseFilename=SincroIA-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-; SetupIconFile=logo.ico                    ; <<< 3) descomentar cuando tengas el .ico
+SetupIconFile=logo.ico
 
 [Languages]
 Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
