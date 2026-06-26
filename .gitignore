@@ -1,0 +1,29 @@
+# Secretos — NUNCA subir
+.env
+.env.*
+!.env.example
+*.secret
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Cloudflare Wrangler
+.wrangler/
+licencias-worker/node_modules/
+
+# Carpetas de prueba / temporales
+_ruflo-test/
+*.log
+SincroIA-test/
+
+# Salidas de build del instalador
+Output/
+*.exe
+
+# Bases de datos locales (Ruflo, etc.)
+*.db
+
+# OS
+Thumbs.db
+.DS_Store

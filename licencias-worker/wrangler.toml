@@ -1,0 +1,21 @@
+name = "sincro-ia-licencias"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# --- Variables publicas (no secretas) ---
+[vars]
+PRODUCT_NAME = "Sincro IA"
+PRICE_ARS    = "0"                       # poner el precio en pesos
+APP_ORIGIN   = "https://sincro-ia-licencias.TU-SUBDOMINIO.workers.dev"  # URL del Worker
+EMAIL_FROM   = "Sincro IA <onboarding@resend.dev>"
+
+# --- KV: almacen de licencias ---
+# Crear con:  wrangler kv namespace create LICENCIAS
+# y pegar el id que devuelve aca abajo.
+[[kv_namespaces]]
+binding = "LICENCIAS"
+id      = "REEMPLAZAR_KV_ID"
+
+# --- Secrets (NO van aca; cargar con wrangler secret put) ---
+#   wrangler secret put MP_ACCESS_TOKEN
+#   wrangler secret put RESEND_API_KEY   (opcional)
