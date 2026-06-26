@@ -66,3 +66,12 @@
 - **Firma del webhook MP implementada** en el Worker: HMAC-SHA256 sobre `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` vs `v1` del header `x-signature`. Comparación de longitud constante. Fail-closed (sin MP_WEBHOOK_SECRET → 401). Worker JS OK. Commit+push.
 - Nuevo secret: `MP_WEBHOOK_SECRET` (sacar del panel de webhooks de MP). Documentado en wrangler.toml + README.
 - ESTADO: Worker listo para producción (queda solo configurar secrets + deploy). Falta: web de venta, deploy, compilar .exe, prueba PC limpia.
+
+## 2026-06-26 (cont.) — Worker EN PRODUCCIÓN
+- Worker deployado: `https://sincro-ia-licencias.agustinhfernandez.workers.dev` (cuenta CF agustinhfernandez, account 03be8cee...).
+- KV LICENCIAS id `f25a26729e9049a4a10af9a51c6f9f57` en wrangler.toml.
+- Secrets cargados (vía wrangler, NO en repo): MP_ACCESS_TOKEN + MP_WEBHOOK_SECRET.
+- PRICE_ARS = 20000.
+- Webhook MP configurado (Modo productivo, evento Pagos) → URL/webhook.
+- **PROBADO**: GET / responde ok; POST /crear-pago devuelve init_point real de MP (preferencia creada). Cobro funciona de punta a punta.
+- PENDIENTE: probar flujo completo con pago real (webhook → genera licencia en KV → email/gracias), web de venta, compilar .exe (Inno Setup), prueba PC limpia. Email Resend sin configurar (entrega = página /gracias por ahora).

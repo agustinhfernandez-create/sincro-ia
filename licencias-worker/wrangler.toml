@@ -5,7 +5,7 @@ compatibility_date = "2026-01-01"
 # --- Variables publicas (no secretas) ---
 [vars]
 PRODUCT_NAME = "Sincro IA"
-PRICE_ARS    = "0"                       # poner el precio en pesos
+PRICE_ARS    = "20000"                   # precio en pesos (ARS)
 APP_ORIGIN   = "https://sincro-ia-licencias.agustinhfernandez.workers.dev"  # URL del Worker
 EMAIL_FROM   = "Sincro IA <onboarding@resend.dev>"
 
