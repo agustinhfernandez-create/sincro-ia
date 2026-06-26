@@ -83,3 +83,10 @@
 - **Deployada en Cloudflare Pages**: proyecto `sincro-ia-web` → https://sincro-ia-web.pages.dev (verificada 200 + contenido). Fix CSS typo + redeploy.
 - Dominio del usuario: **sincro-ia.com.ar** (NIC.ar) — PENDIENTE conectar (custom domain en Pages + NS a Cloudflare o CNAME).
 - ESTADO PRODUCTO: Capa B ✓, bootstrap ✓, setup.iss ✓, Worker licencias EN PROD ✓, web EN LÍNEA ✓. Falta: conectar dominio, compilar .exe + subirlo a /descargas, prueba PC limpia, (opcional) email Resend.
+
+## 2026-06-26 (cont.) — Instalador COMPILADO + web con descarga
+- **SincroIA-Setup.exe compilado** con Inno Setup (ISCC.exe). 2.24 MB (liviano: lleva bootstrap + plantilla; las herramientas se bajan al instalar).
+- Copiado a web/descargas/ y deployado en Pages. Descarga verificada (200, application/octet-stream).
+- .exe NO se commitea (gitignore *.exe); se sube a Pages directo.
+- Logo azul #3b82f6, web dark con tipografía Space Grotesk/Inter, todo pusheado.
+- ESTADO: PRODUCTO FUNCIONAL DE PUNTA A PUNTA (web → compra MP → licencia → descarga → instalador). Falta: PROBAR EN PC LIMPIA (crítico, riesgo bootstrap), conectar dominio (propagando), (opcional) email Resend, firma de código (.exe sin firmar → SmartScreen).
