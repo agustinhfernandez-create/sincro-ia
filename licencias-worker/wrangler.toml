@@ -6,7 +6,7 @@ compatibility_date = "2026-01-01"
 [vars]
 PRODUCT_NAME = "Sincro IA"
 PRICE_ARS    = "0"                       # poner el precio en pesos
-APP_ORIGIN   = "https://sincro-ia-licencias.TU-SUBDOMINIO.workers.dev"  # URL del Worker
+APP_ORIGIN   = "https://sincro-ia-licencias.agustinhfernandez.workers.dev"  # URL del Worker
 EMAIL_FROM   = "Sincro IA <onboarding@resend.dev>"
 
 # --- KV: almacen de licencias ---
@@ -14,7 +14,7 @@ EMAIL_FROM   = "Sincro IA <onboarding@resend.dev>"
 # y pegar el id que devuelve aca abajo.
 [[kv_namespaces]]
 binding = "LICENCIAS"
-id      = "REEMPLAZAR_KV_ID"
+id      = "f25a26729e9049a4a10af9a51c6f9f57"
 
 # --- Secrets (NO van aca; cargar con wrangler secret put) ---
 #   wrangler secret put MP_ACCESS_TOKEN    (access token de Mercado Pago)

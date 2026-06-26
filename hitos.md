@@ -61,3 +61,8 @@
 - Commit inicial: 27 archivos (plantilla + instalador + licencias-worker + docs/adr). Sin secretos.
 - MP: elegido **Checkout Pro** (coincide con /crear-pago del Worker).
 - PENDIENTE usuario: gh OK ✓; falta deploy Worker (token MP via wrangler secret, NO compartir), compilar .exe (Inno Setup), prueba PC limpia.
+
+## 2026-06-26 (cont.) — Seguridad webhook MP
+- **Firma del webhook MP implementada** en el Worker: HMAC-SHA256 sobre `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` vs `v1` del header `x-signature`. Comparación de longitud constante. Fail-closed (sin MP_WEBHOOK_SECRET → 401). Worker JS OK. Commit+push.
+- Nuevo secret: `MP_WEBHOOK_SECRET` (sacar del panel de webhooks de MP). Documentado en wrangler.toml + README.
+- ESTADO: Worker listo para producción (queda solo configurar secrets + deploy). Falta: web de venta, deploy, compilar .exe, prueba PC limpia.

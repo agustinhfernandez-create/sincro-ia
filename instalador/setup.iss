@@ -15,7 +15,7 @@
 #define MyAppName    "Sincro IA"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Sincro IA"          ; <<< 2) cambiar por tu nombre/empresa
-#define MyLicenseApi "https://sincro-ia-licencias.TU-SUBDOMINIO.workers.dev"  ; <<< 1) URL del Worker
+#define MyLicenseApi "https://sincro-ia-licencias.agustinhfernandez.workers.dev"  ; URL del Worker
 
 [Setup]
 AppId={{B7E3B1C0-5A2D-4E9A-9C11-SINCROIA0001}}

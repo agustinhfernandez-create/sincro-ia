@@ -19,7 +19,7 @@ param(
     # Destino del entorno (carpeta del usuario, sin admin)
     [Parameter(Mandatory = $false)] [string] $InstallDir  = "$env:USERPROFILE\SincroIA",
     # URL del Worker de licencias (Cloudflare). Se completa al desplegar el Worker.
-    [Parameter(Mandatory = $false)] [string] $LicenseApi  = "https://sincro-ia-licencias.TU-SUBDOMINIO.workers.dev"
+    [Parameter(Mandatory = $false)] [string] $LicenseApi  = "https://sincro-ia-licencias.agustinhfernandez.workers.dev"
 )
 
 $ErrorActionPreference = "Stop"
