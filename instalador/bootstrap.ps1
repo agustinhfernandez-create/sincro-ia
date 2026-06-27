@@ -22,7 +22,9 @@ param(
     [Parameter(Mandatory = $false)] [string] $LicenseApi  = "https://sincro-ia-licencias.agustinhfernandez.workers.dev"
 )
 
-$ErrorActionPreference = "Stop"
+# Continue: ningun hipo de un prerrequisito debe abortar todo el instalador.
+# Los errores criticos se manejan explicitamente con Die.
+$ErrorActionPreference = "Continue"
 $LogFile = "$env:TEMP\sincro-ia-install.log"
 
 # --------------------------------------------------------------------
@@ -39,27 +41,45 @@ function Die($msg) {
     exit 1
 }
 
-# ¿Existe un comando? (deteccion sin IA, pura consulta al sistema)
-function Test-Cmd($name) {
-    return [bool](Get-Command $name -ErrorAction SilentlyContinue)
+# Refresca el PATH de la sesion combinando Maquina + Usuario (ve lo recien instalado)
+function Update-Path {
+    $m = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+    $u = [System.Environment]::GetEnvironmentVariable("Path","User")
+    $env:Path = (@($m,$u) | Where-Object { $_ }) -join ";"
 }
 
-# Devuelve la version mayor de un comando tipo "node --version" -> 20
+# ¿Existe un comando REAL? (ignora los stubs de Microsoft Store / WindowsApps)
+function Get-RealCmd($name) {
+    $cmds = Get-Command $name -All -ErrorAction SilentlyContinue
+    foreach ($c in $cmds) {
+        $src = $c.Source
+        if ($src -and ($src -notlike "*WindowsApps*")) { return $c }
+    }
+    return $null
+}
+function Test-Cmd($name) { return [bool](Get-RealCmd $name) }
+
+# Devuelve la version mayor de un comando tipo "node --version" -> 20 (-1 si no existe)
 function Get-MajorVersion($cmd, $arg = "--version") {
+    $real = Get-RealCmd $cmd
+    if (-not $real) { return -1 }
     try {
-        $out = & $cmd $arg 2>$null
+        $out = & $real.Source $arg 2>$null
         if ($out -match "(\d+)\.(\d+)") { return [int]$Matches[1] }
     } catch {}
     return -1
 }
 
-# Instala via winget si esta disponible; si no, avisa con URL de fallback
-function Install-Pkg($wingetId, $nombre, $urlFallback) {
+# Instala via winget si esta disponible; refresca PATH y RE-VERIFICA con $checkCmd.
+# winget devuelve codigos != 0 aunque el paquete ya este instalado ("no update"),
+# por eso confiamos en la re-verificacion del comando, no en el exit code.
+function Install-Pkg($wingetId, $nombre, $checkCmd, $urlFallback) {
     if (Test-Cmd "winget") {
         Write-Info "Instalando $nombre via winget ($wingetId)..."
-        winget install --id $wingetId --silent --accept-package-agreements --accept-source-agreements --disable-interactivity | Out-Null
-        if ($LASTEXITCODE -eq 0) { Write-Ok "$nombre instalado"; return $true }
-        Write-Warn2 "winget fallo para $nombre."
+        cmd /c "winget install --id $wingetId --silent --accept-package-agreements --accept-source-agreements --disable-interactivity" 2>&1 | Out-Null
+        Update-Path
+        if (Test-Cmd $checkCmd) { Write-Ok "$nombre disponible"; return $true }
+        Write-Warn2 "winget no dejo $nombre disponible (codigo $LASTEXITCODE)."
     } else {
         Write-Warn2 "winget no disponible."
     }
@@ -97,46 +117,63 @@ try {
 # ====================================================================
 Write-Step "FASE 0 - Prerrequisitos"
 
+# Refrescar PATH primero: algo puede estar ya instalado pero fuera del PATH heredado
+Update-Path
+
+# Detecta Python valido (>=3.10) ignorando el stub de Microsoft Store. Prueba 'python' y 'py'.
+function Test-Python {
+    foreach ($name in @("python","py")) {
+        $real = Get-RealCmd $name
+        if ($real) {
+            try {
+                $v = & $real.Source --version 2>&1
+                if ($v -match "Python 3\.(\d+)" -and [int]$Matches[1] -ge 10) { return $true }
+            } catch {}
+        }
+    }
+    return $false
+}
+
 # Node.js >= 18
-if ((Get-MajorVersion "node") -ge 18) { Write-Ok "Node.js presente ($(node --version))" }
-else { Install-Pkg "OpenJS.NodeJS.LTS" "Node.js LTS" "https://nodejs.org" | Out-Null }
+if ((Get-MajorVersion "node") -ge 18) { Write-Ok "Node.js presente" }
+else { Install-Pkg "OpenJS.NodeJS.LTS" "Node.js LTS" "node" "https://nodejs.org" | Out-Null }
 
 # Python >= 3.10
-$pyMajorOk = $false
-if (Test-Cmd "python") {
-    $v = & python --version 2>&1
-    if ($v -match "3\.(\d+)" -and [int]$Matches[1] -ge 10) { $pyMajorOk = $true }
+if (Test-Python) { Write-Ok "Python presente" }
+else {
+    if (Install-Pkg "Python.Python.3.12" "Python 3.12" "python" "https://www.python.org/downloads/") {}
+    elseif (Test-Python) { Write-Ok "Python presente" }
 }
-if ($pyMajorOk) { Write-Ok "Python presente ($(python --version 2>&1))" }
-else { Install-Pkg "Python.Python.3.12" "Python 3.12" "https://www.python.org/downloads/" | Out-Null }
 
 # git
 if (Test-Cmd "git") { Write-Ok "git presente" }
-else { Install-Pkg "Git.Git" "git" "https://git-scm.com/download/win" | Out-Null }
+else { Install-Pkg "Git.Git" "git" "git" "https://git-scm.com/download/win" | Out-Null }
 
 # VSCode
 if (Test-Cmd "code") { Write-Ok "VSCode presente" }
-else { Install-Pkg "Microsoft.VisualStudioCode" "VSCode" "https://code.visualstudio.com" | Out-Null }
+else { Install-Pkg "Microsoft.VisualStudioCode" "VSCode" "code" "https://code.visualstudio.com" | Out-Null }
+
+Update-Path
 
 # uv (gestor de paquetes Python, para graphify y notebooklm-py)
 if (Test-Cmd "uv") { Write-Ok "uv presente" }
 else {
     Write-Info "Instalando uv..."
-    try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression; Write-Ok "uv instalado" }
-    catch { Write-Warn2 "No se pudo instalar uv automaticamente: https://docs.astral.sh/uv/" }
+    try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression; Update-Path } catch {}
+    if (Test-Cmd "uv") { Write-Ok "uv instalado" } else { Write-Warn2 "No se pudo instalar uv: https://docs.astral.sh/uv/" }
 }
 
 # Claude Code CLI (npm global)
 if (Test-Cmd "claude") { Write-Ok "Claude Code presente" }
 else {
     Write-Info "Instalando Claude Code CLI..."
-    try { npm install -g @anthropic-ai/claude-code | Out-Null; Write-Ok "Claude Code instalado" }
-    catch { Write-Warn2 "No se pudo instalar Claude Code CLI: revisa Node/npm." }
+    if (Test-Cmd "npm") {
+        cmd /c "npm install -g @anthropic-ai/claude-code" 2>&1 | Out-Null; Update-Path
+        if (Test-Cmd "claude") { Write-Ok "Claude Code instalado" } else { Write-Warn2 "No se pudo instalar Claude Code CLI." }
+    } else { Write-Warn2 "npm no disponible (falta Node). Claude Code no instalado." }
 }
 
-# Refrescar PATH de la sesion para ver lo recien instalado
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
-            [System.Environment]::GetEnvironmentVariable("Path","User")
+Update-Path
 
 # ====================================================================
 # FASE 1 : Graphify + NotebookLM (Python / uv) - independientes
