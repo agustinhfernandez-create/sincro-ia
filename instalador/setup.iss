@@ -104,6 +104,16 @@ begin
   end;
 end;
 
+[Icons]
+; Acceso directo en Escritorio y Menu Inicio que abre el entorno
+Name: "{autodesktop}\Iniciar Sincro IA"; Filename: "{app}\Iniciar Sincro IA.bat"; WorkingDir: "{app}"; IconFilename: "{app}\logo.ico"
+Name: "{autoprograms}\Sincro IA\Iniciar Sincro IA"; Filename: "{app}\Iniciar Sincro IA.bat"; WorkingDir: "{app}"; IconFilename: "{app}\logo.ico"
+Name: "{autoprograms}\Sincro IA\Empezar (guia)"; Filename: "{app}\EMPEZAR-AQUI.html"
+
+[Files]
+; Icono para los accesos directos
+Source: "logo.ico"; DestDir: "{app}"; Flags: ignoreversion
+
 [Run]
-; Abre la carpeta del entorno al terminar
-Filename: "{app}"; Description: "Abrir la carpeta de Sincro IA"; Flags: postinstall shellexec skipifsilent
+; Al terminar: abrir la guia de primeros pasos
+Filename: "{app}\EMPEZAR-AQUI.html"; Description: "Ver cómo empezar"; Flags: postinstall shellexec skipifsilent

@@ -90,3 +90,17 @@
 - .exe NO se commitea (gitignore *.exe); se sube a Pages directo.
 - Logo azul #3b82f6, web dark con tipografía Space Grotesk/Inter, todo pusheado.
 - ESTADO: PRODUCTO FUNCIONAL DE PUNTA A PUNTA (web → compra MP → licencia → descarga → instalador). Falta: PROBAR EN PC LIMPIA (crítico, riesgo bootstrap), conectar dominio (propagando), (opcional) email Resend, firma de código (.exe sin firmar → SmartScreen).
+
+## 2026-06-27 — PROBADO EN PC LIMPIA + onboarding (bugs corregidos)
+- Instalador probado en PC limpia real. Bugs encontrados y corregidos en bootstrap.ps1:
+  1. ExtractTemporaryFiles fallaba → plantilla a {app}\_plantilla.
+  2. GeminiKey vacía rompía parseo PowerShell → .iss omite el parámetro si está vacío (PsArg escapa comillas).
+  3. PATH no refrescado → Node instalado no se detectaba → agregado Update-Path (Machine+User) antes de detectar y tras cada install.
+  4. winget "no update" devuelve exit≠0 → Install-Pkg ahora RE-VERIFICA el comando, no confía en exit code.
+  5. Stub de Python (WindowsApps) colgaba → Get-RealCmd/Test-Python ignoran WindowsApps SOLO para Python (Test-Cmd general sí ve winget, que vive en WindowsApps).
+  6. GSD y matpocock eran INTERACTIVOS y colgaban → flags no-interactivos: GSD `--claude --local`, matpocock `add ... -y -a * -s *`. (GSD CLI v1.6 tiene --claude/--local/--all; skills add tiene -y/-a/-s).
+  7. ErrorActionPreference Stop → Continue (un prereq no aborta todo).
+- **Instaló completo en PC limpia** (las 5 fases).
+- **ONBOARDING agregado** (Capa B): `EMPEZAR-AQUI.html` (4 pasos, se abre al terminar via [Run]) + `Iniciar Sincro IA.bat` (abre VSCode en el entorno) + accesos directos Escritorio/Menú Inicio con logo.ico ([Icons]).
+- Web: `_headers` con no-cache para /descargas/* (clientes siempre bajan el último .exe).
+- ESTADO: PRODUCTO COMPLETO Y PROBADO EN PC LIMPIA. Falta solo: conectar dominio (propagando), (opcional) email Resend + firma de código.
