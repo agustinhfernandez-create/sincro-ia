@@ -188,6 +188,11 @@ if (-not (Test-Path $TemplateDir)) { Die "No se encontro la plantilla Capa B en 
 Copy-Item -Path "$TemplateDir\*" -Destination $InstallDir -Recurse -Force
 Write-Ok "Capa B desplegada (CLAUDE.md, .mcp.json, scripts, skills propias)"
 
+# Limpiar la carpeta temporal de la plantilla si quedo dentro del InstallDir
+if ($TemplateDir -like "$InstallDir*" -and (Test-Path $TemplateDir)) {
+    Remove-Item -Path $TemplateDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 # Carpeta de proyectos del usuario
 $proyectos = Join-Path $InstallDir "Workspace\Proyectos"
 if (-not (Test-Path $proyectos)) { New-Item -ItemType Directory -Force -Path $proyectos | Out-Null }

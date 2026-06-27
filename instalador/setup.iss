@@ -37,9 +37,9 @@ Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Files]
 ; El motor del instalador
-Source: "bootstrap.ps1"; DestDir: "{tmp}"; Flags: dontcopy
-; La plantilla Capa B completa (se empaqueta y se descomprime al instalar)
-Source: "..\plantilla\*"; DestDir: "{tmp}\plantilla"; Flags: recursesubdirs dontcopy
+Source: "bootstrap.ps1"; DestDir: "{app}"; Flags: ignoreversion
+; La plantilla Capa B completa (queda en {app}\_plantilla; el bootstrap la despliega al final)
+Source: "..\plantilla\*"; DestDir: "{app}\_plantilla"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Code]
 var
@@ -54,6 +54,13 @@ begin
     'Google AI Studio. Los inicios de sesión de Claude y NotebookLM se hacen después de instalar.');
   PageCreds.Add('Clave de licencia:', False);
   PageCreds.Add('API key de Gemini (opcional ahora):', False);
+end;
+
+// Escapa comillas dobles dentro de un valor para pasarlo seguro a PowerShell
+function PsArg(const Valor: String): String;
+begin
+  Result := Valor;
+  StringChangeEx(Result, '"', '""', True);
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -77,17 +84,16 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
-    ExtractTemporaryFile('bootstrap.ps1');
-    ExtractTemporaryFiles('plantilla\*');
-
-    // Llama al bootstrap con los datos del wizard
+    // Llama al bootstrap con los datos del wizard.
+    // La GeminiKey solo se pasa si el usuario la cargo (si va vacia rompe el parseo).
     PsCmd :=
-      '-ExecutionPolicy Bypass -NoProfile -File "' + ExpandConstant('{tmp}\bootstrap.ps1') + '"' +
-      ' -LicenseKey "'  + PageCreds.Values[0] + '"' +
-      ' -GeminiKey "'   + PageCreds.Values[1] + '"' +
-      ' -TemplateDir "' + ExpandConstant('{tmp}\plantilla') + '"' +
+      '-ExecutionPolicy Bypass -NoProfile -File "' + ExpandConstant('{app}\bootstrap.ps1') + '"' +
+      ' -LicenseKey "'  + PsArg(PageCreds.Values[0]) + '"' +
+      ' -TemplateDir "' + ExpandConstant('{app}\_plantilla') + '"' +
       ' -InstallDir "'  + ExpandConstant('{app}') + '"' +
       ' -LicenseApi "'  + '{#MyLicenseApi}' + '"';
+    if Trim(PageCreds.Values[1]) <> '' then
+      PsCmd := PsCmd + ' -GeminiKey "' + PsArg(PageCreds.Values[1]) + '"';
 
     if not Exec('powershell.exe', PsCmd, '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then
       MsgBox('No se pudo iniciar la instalación del entorno.', mbError, MB_OK)
