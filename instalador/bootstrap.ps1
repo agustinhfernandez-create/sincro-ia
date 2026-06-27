@@ -198,12 +198,13 @@ try {
 Pop-Location
 
 # ====================================================================
-# FASE 3 : GSD (open-gsd) - runtime Claude Code
+# FASE 3 : GSD (open-gsd) - runtime Claude Code, no-interactivo
+#   Flags: --claude (runtime) --local (instala en el dir actual)
 # ====================================================================
 Write-Step "FASE 3 - GSD"
 Push-Location $InstallDir
-try { npx -y "@opengsd/gsd-core@latest" | Out-Null; Write-Ok "GSD instalado" }
-catch { Write-Warn2 "GSD fallo (revisar instalacion interactiva): $($_.Exception.Message)" }
+try { cmd /c "npx -y @opengsd/gsd-core@latest --claude --local <nul" 2>&1 | Out-Null; Write-Ok "GSD instalado" }
+catch { Write-Warn2 "GSD fallo: $($_.Exception.Message)" }
 Pop-Location
 
 # ====================================================================
@@ -211,7 +212,8 @@ Pop-Location
 # ====================================================================
 Write-Step "FASE 4 - Matt Pocock skills"
 Push-Location $InstallDir
-try { npx -y skills@latest add mattpocock/skills | Out-Null; Write-Ok "Skills de Matt Pocock instaladas" }
+# -y (sin prompts) -a * (todos los agentes) -s * (todas las skills)
+try { cmd /c "npx -y skills@latest add mattpocock/skills -y -a * -s * <nul" 2>&1 | Out-Null; Write-Ok "Skills de Matt Pocock instaladas" }
 catch { Write-Warn2 "matpocock skills fallo: $($_.Exception.Message)" }
 Pop-Location
 
