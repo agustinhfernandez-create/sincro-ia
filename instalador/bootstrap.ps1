@@ -48,7 +48,7 @@ function Update-Path {
     $env:Path = (@($m,$u) | Where-Object { $_ }) -join ";"
 }
 
-# ¿Existe un comando REAL? (ignora los stubs de Microsoft Store / WindowsApps)
+# Comando REAL ignorando los stubs de Microsoft Store (solo se usa para Python)
 function Get-RealCmd($name) {
     $cmds = Get-Command $name -All -ErrorAction SilentlyContinue
     foreach ($c in $cmds) {
@@ -57,14 +57,17 @@ function Get-RealCmd($name) {
     }
     return $null
 }
-function Test-Cmd($name) { return [bool](Get-RealCmd $name) }
+
+# ¿Existe un comando? (incluye winget, que vive en WindowsApps)
+function Test-Cmd($name) {
+    return [bool](Get-Command $name -ErrorAction SilentlyContinue)
+}
 
 # Devuelve la version mayor de un comando tipo "node --version" -> 20 (-1 si no existe)
 function Get-MajorVersion($cmd, $arg = "--version") {
-    $real = Get-RealCmd $cmd
-    if (-not $real) { return -1 }
+    if (-not (Test-Cmd $cmd)) { return -1 }
     try {
-        $out = & $real.Source $arg 2>$null
+        $out = & $cmd $arg 2>$null
         if ($out -match "(\d+)\.(\d+)") { return [int]$Matches[1] }
     } catch {}
     return -1
