@@ -56,6 +56,8 @@ export default {
         return await gracias(url, env);
       if (pathname === "/validate" && request.method === "POST")
         return await validate(request, env);
+      if (pathname === "/generar-gratis" && request.method === "POST")
+        return await generarGratis(request, env);
 
       return json({ ok: true, service: "sincro-ia-licencias" });
     } catch (e) {
@@ -230,6 +232,31 @@ async function gracias(url, env) {
     <div class="card"><h1>Sincro IA</h1>${cuerpo}</div></body></html>`;
 
   return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+}
+
+// --------------------------------------------------------------------
+// 3b) Generar licencia GRATIS (modo lanzamiento, sin pago) — 1 por email
+// --------------------------------------------------------------------
+async function generarGratis(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const email = (body.email || "").trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+    return json({ error: "email invalido" }, 400);
+
+  // 1 clave por email: si ya pidio, devolver la misma
+  const existente = await env.LICENCIAS.get(`email:${email}`);
+  if (existente) return json({ clave: existente, reused: true });
+
+  const clave = generarClave();
+  const registro = {
+    clave, email, payment_id: "GRATIS", status: "active",
+    activaciones: 0, max_activaciones: 1, machine_id: null,
+    creado: new Date().toISOString(),
+  };
+  await env.LICENCIAS.put(`lic:${clave}`, JSON.stringify(registro));
+  await env.LICENCIAS.put(`email:${email}`, clave);
+  if (env.RESEND_API_KEY) { await enviarEmail(env, email, clave).catch(() => {}); }
+  return json({ clave });
 }
 
 // --------------------------------------------------------------------

@@ -200,6 +200,8 @@
   .mcard .buy{width:100%;background:var(--grad);color:#fff;font-weight:600;font-size:15px;padding:14px;border-radius:10px;margin-top:16px;cursor:pointer;border:0}
   .mcard .x{float:right;cursor:pointer;color:var(--muted);font-size:22px;line-height:1}
   .err{color:#fca5a5;font-size:13px;margin-top:10px;display:none}
+  .claveout{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;letter-spacing:2px;color:#60a5fa;
+    background:#0a0c10;border:2px dashed #3b82f6;border-radius:10px;padding:16px;text-align:center;margin:8px 0 18px;user-select:all}
 
   [data-animate]{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
 </style>
@@ -219,7 +221,7 @@
       <a href="#como">Cómo funciona</a>
       <a href="#faq">FAQ</a>
     </div>
-    <button class="nav-cta" onclick="abrirCompra()">Comprar</button>
+    <button class="nav-cta" onclick="abrirCompra()">Descargar gratis</button>
   </div>
 </nav>
 
@@ -233,7 +235,7 @@
       <p class="lead">Sincro IA instala un entorno completo donde la IA recuerda cada proyecto,
         mapea dependencias y sigue un método de trabajo claro. Cargás tus claves y empezás.</p>
       <div class="hero-cta">
-        <button class="btn-primary" onclick="abrirCompra()">Comprar licencia</button>
+        <button class="btn-primary" onclick="abrirCompra()" style="font-size:18px;padding:18px 38px">⬇ Descargar gratis</button>
         <a href="#como" class="link-blue">Ver cómo funciona
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 7.5h9M8 4l3.5 3.5L8 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
@@ -374,7 +376,7 @@
     <h2 class="h2" data-animate>De cero a trabajando,<br>en 3 pasos</h2>
     <div class="steps">
       <div class="stepline"></div>
-      <div class="step" data-animate><div class="n">1</div><h3>Comprá y descargá</h3><p>Pagás la licencia con Mercado Pago y descargás el instalador para Windows.</p></div>
+      <div class="step" data-animate><div class="n">1</div><h3>Pedí tu clave y descargá</h3><p>Dejás tu email, recibís tu clave gratis al instante y descargás el instalador para Windows.</p></div>
       <div class="step" data-animate data-delay="110"><div class="n">2</div><h3>Instalá</h3><p>Un instalador deja todo el entorno listo. Pegás tu clave y tus APIs en segundos.</p></div>
       <div class="step" data-animate data-delay="220"><div class="n">3</div><h3>Empezá a trabajar</h3><p>Abrís, la IA carga el contexto y seguís donde lo dejaste. Así de simple.</p></div>
     </div>
@@ -384,22 +386,21 @@
 <!-- PRECIO -->
 <section class="s" id="precio">
   <div class="wrap">
-    <span class="eyebrow">// precio</span>
-    <h2 class="h2" data-animate>Una vez. Tuyo para siempre.</h2>
+    <span class="eyebrow">// acceso</span>
+    <h2 class="h2" data-animate>Gratis por lanzamiento.</h2>
     <div class="price" data-animate data-delay="80">
       <div class="gl"></div>
-      <div class="tag mono">pago_único</div>
+      <div class="tag mono">lanzamiento</div>
       <div class="name">Licencia Sincro IA</div>
-      <div class="num"><b>$20.000</b><small>ARS</small></div>
-      <div class="once">1 PC · sin renovaciones</div>
+      <div class="num"><b>GRATIS</b></div>
+      <div class="once">1 PC · sin tarjeta · acceso completo</div>
       <ul>
         <li><span class="mk">✓</span>Entorno completo preinstalado</li>
         <li><span class="mk">✓</span>Memoria, mapas y flujos de trabajo</li>
         <li><span class="mk">✓</span>Actualizaciones del entorno</li>
         <li><span class="mk">✓</span>Funciona con tus propias APIs</li>
       </ul>
-      <button class="buy" onclick="abrirCompra()">Comprar ahora</button>
-      <a class="dl" href="/descargas/SincroIA-Setup.exe">⬇ descargar instalador gratis</a>
+      <button class="buy" onclick="abrirCompra()">Obtener mi clave gratis</button>
       <p class="note">Necesitás tus cuentas de Claude y Gemini.</p>
     </div>
   </div>
@@ -419,8 +420,8 @@
         <p>Porque así vos controlás tu cuenta y tu gasto, y tus datos nunca pasan por nosotros. Lo que comprás es el entorno y su configuración, no el consumo de las IAs.</p></details>
       <details><summary><span>¿Qué cuentas necesito?</span><span class="ind"></span></summary>
         <p>Una cuenta de Claude (Anthropic) y una clave de Gemini (Google). Opcionalmente NotebookLM para consultar documentos. El instalador te guía para cargarlas.</p></details>
-      <details><summary><span>¿Es un pago único o una suscripción?</span><span class="ind"></span></summary>
-        <p>Pago único. Sin cobros recurrentes. Pagás una vez y el entorno es tuyo.</p></details>
+      <details><summary><span>¿Cuánto cuesta?</span><span class="ind"></span></summary>
+        <p>Por lanzamiento es gratis: dejás tu email y obtenés tu clave al instante, sin tarjeta. Solo pagás el consumo de tus propias cuentas de IA (Claude, Gemini).</p></details>
       <details><summary><span>¿En cuántas computadoras puedo usarlo?</span><span class="ind"></span></summary>
         <p>Cada licencia activa una PC. Si cambiás de equipo, escribinos y lo resolvemos.</p></details>
       <details><summary><span>¿Funciona sin internet?</span><span class="ind"></span></summary>
@@ -434,7 +435,7 @@
   <span class="eyebrow">$ sincro --install</span>
   <h2>Ordená tu trabajo<br>con IA hoy</h2>
   <p>Instalá una vez, cargá tus claves y dejá de empezar de cero en cada conversación.</p>
-  <button class="btn-primary" onclick="abrirCompra()">Comprar licencia</button>
+  <button class="btn-primary" onclick="abrirCompra()">Descargar gratis</button>
 </div>
 
 <footer>
@@ -448,12 +449,21 @@
 <div class="modal" id="modal">
   <div class="mcard">
     <span class="x" onclick="cerrarCompra()">×</span>
-    <h3>Comprar Sincro IA</h3>
-    <p>Dejanos tu email para enviarte la licencia. Te llevamos a Mercado Pago para completar el pago.</p>
-    <label for="email">Tu email</label>
-    <input id="email" type="email" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
-    <div class="err" id="err"></div>
-    <button class="buy" id="goPay" onclick="pagar()">Ir a pagar</button>
+    <div id="paso1">
+      <h3>Obtené tu acceso gratis</h3>
+      <p>Dejanos tu email y te damos tu clave al instante. <b>Gratis por lanzamiento.</b></p>
+      <label for="email">Tu email</label>
+      <input id="email" type="email" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
+      <div class="err" id="err"></div>
+      <button class="buy" id="goGet" onclick="obtener()">Obtener mi clave gratis</button>
+    </div>
+    <div id="paso2" style="display:none">
+      <h3>¡Listo! 🎉</h3>
+      <p>Tu clave de licencia (la pegás en el instalador):</p>
+      <div class="claveout" id="claveOut"></div>
+      <a class="buy" href="/descargas/SincroIA-Setup.exe" style="text-decoration:none;display:block;text-align:center">⬇ Descargar instalador</a>
+      <p class="note" style="margin-top:12px">Guardá tu clave. ¿Cómo seguir? Mirá la <a href="/empezar.html" style="color:#60a5fa">guía de instalación</a>.</p>
+    </div>
   </div>
 </div>
 
@@ -477,20 +487,28 @@
   document.querySelectorAll('[data-animate]').forEach(function(el){ io.observe(el); });
 
   // compra
-  function abrirCompra(){ document.getElementById('modal').classList.add('on'); document.getElementById('email').focus(); }
+  function abrirCompra(){
+    document.getElementById('paso1').style.display='block';
+    document.getElementById('paso2').style.display='none';
+    document.getElementById('modal').classList.add('on'); document.getElementById('email').focus();
+  }
   function cerrarCompra(){ document.getElementById('modal').classList.remove('on'); }
   document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this) cerrarCompra(); });
 
-  async function pagar(){
-    var email=document.getElementById('email').value.trim(), err=document.getElementById('err'), btn=document.getElementById('goPay');
+  async function obtener(){
+    var email=document.getElementById('email').value.trim(), err=document.getElementById('err'), btn=document.getElementById('goGet');
     err.style.display='none';
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent='Ingresá un email válido.'; err.style.display='block'; return; }
-    btn.disabled=true; btn.textContent='Generando pago…';
+    btn.disabled=true; btn.textContent='Generando…';
     try{
-      var r=await fetch(API+'/crear-pago',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+      var r=await fetch(API+'/generar-gratis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
       var d=await r.json();
-      if(d.init_point){ window.location.href=d.init_point; } else { throw new Error('sin init_point'); }
-    }catch(e){ err.textContent='No se pudo iniciar el pago. Probá de nuevo.'; err.style.display='block'; btn.disabled=false; btn.textContent='Ir a pagar'; }
+      if(d.clave){
+        document.getElementById('claveOut').textContent=d.clave;
+        document.getElementById('paso1').style.display='none';
+        document.getElementById('paso2').style.display='block';
+      } else { throw new Error('sin clave'); }
+    }catch(e){ err.textContent='No se pudo generar la clave. Probá de nuevo.'; err.style.display='block'; btn.disabled=false; btn.textContent='Obtener mi clave gratis'; }
   }
 </script>
 </body>
