@@ -158,6 +158,13 @@ else { Install-Pkg "Microsoft.VisualStudioCode" "VSCode" "code" "https://code.vi
 
 Update-Path
 
+# Extension de Claude Code para VSCode (deja la IA integrada en el editor)
+if (Test-Cmd "code") {
+    Write-Info "Instalando extension de Claude en VSCode..."
+    cmd /c "code --install-extension anthropic.claude-code --force" 2>&1 | Out-Null
+    Write-Ok "Extension de Claude en VSCode"
+}
+
 # uv (gestor de paquetes Python, para graphify y notebooklm-py)
 if (Test-Cmd "uv") { Write-Ok "uv presente" }
 else {
