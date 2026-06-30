@@ -30,7 +30,14 @@ $LogFile = "$env:TEMP\sincro-ia-install.log"
 # --------------------------------------------------------------------
 # Helpers de log
 # --------------------------------------------------------------------
-function Write-Step($msg)  { Write-Host "`n=== $msg ===" -ForegroundColor Cyan;  Add-Content $LogFile "=== $msg ===" }
+# Barra de progreso global: avanza una fase por cada Write-Step.
+$script:StepN     = 0
+$script:StepTotal = 8   # cantidad de Write-Step (licencia + FASE 0..5 + cierre)
+function Write-Step($msg)  {
+    $script:StepN++
+    $pct = [math]::Min(100, [int](($script:StepN / $script:StepTotal) * 100))
+    Write-Progress -Activity "Instalando Sincro IA" -Status "$msg ($($script:StepN)/$($script:StepTotal))" -PercentComplete $pct
+    Write-Host "`n=== $msg ===" -ForegroundColor Cyan;  Add-Content $LogFile "=== $msg ===" }
 function Write-Ok($msg)    { Write-Host "  [OK] $msg"   -ForegroundColor Green;  Add-Content $LogFile "[OK] $msg" }
 function Write-Info($msg)  { Write-Host "  $msg";                                Add-Content $LogFile $msg }
 function Write-Warn2($msg) { Write-Host "  [!] $msg"    -ForegroundColor Yellow; Add-Content $LogFile "[!] $msg" }
@@ -80,6 +87,12 @@ function Install-Pkg($wingetId, $nombre, $checkCmd, $urlFallback) {
     if (Test-Cmd "winget") {
         Write-Info "Instalando $nombre via winget ($wingetId)..."
         cmd /c "winget install --id $wingetId --silent --accept-package-agreements --accept-source-agreements --disable-interactivity" 2>&1 | Out-Null
+        # winget < 1.4 no soporta --disable-interactivity (codigo 0x8A150002 = INVALID_CL_ARGUMENTS).
+        # Reintentar sin ese flag para que funcione en notebooks viejas.
+        if ($LASTEXITCODE -eq -1978335230) {
+            Write-Info "winget antiguo: reintentando sin --disable-interactivity..."
+            cmd /c "winget install --id $wingetId --silent --accept-package-agreements --accept-source-agreements" 2>&1 | Out-Null
+        }
         Update-Path
         if (Test-Cmd $checkCmd) { Write-Ok "$nombre disponible"; return $true }
         Write-Warn2 "winget no dejo $nombre disponible (codigo $LASTEXITCODE)."
@@ -87,6 +100,47 @@ function Install-Pkg($wingetId, $nombre, $checkCmd, $urlFallback) {
         Write-Warn2 "winget no disponible."
     }
     Write-Warn2 "Instala $nombre manualmente desde: $urlFallback"
+    return $false
+}
+
+# Fallback sin winget: descarga el MSI oficial de Node e instala con msiexec.
+# Necesario en notebooks viejas donde winget esta roto o desactualizado.
+function Install-NodeDirect {
+    $arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
+    $ver  = "v20.18.1"   # LTS pin (>=18, requisito del entorno)
+    $url  = "https://nodejs.org/dist/$ver/node-$ver-$arch.msi"
+    $msi  = "$env:TEMP\sincro-node-lts.msi"
+    Write-Info "winget no sirvio: descargando Node.js $ver directo de nodejs.org ($arch)..."
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $url -OutFile $msi -UseBasicParsing -ErrorAction Stop
+        cmd /c "msiexec /i `"$msi`" /qn /norestart" 2>&1 | Out-Null
+        Update-Path
+        if (Test-Cmd "node") { Write-Ok "Node.js instalado (descarga directa)"; return $true }
+        Write-Warn2 "Node instalado pero no aparece en PATH; reinicia la terminal."
+    } catch {
+        Write-Warn2 "Descarga directa de Node fallo: $($_.Exception.Message)"
+    }
+    return $false
+}
+
+# Fallback sin winget: descarga el instalador oficial de Git for Windows (silencioso).
+function Install-GitDirect {
+    $arch = if ([Environment]::Is64BitOperatingSystem) { "64" } else { "32" }
+    $gv   = "2.47.1"
+    $url  = "https://github.com/git-for-windows/git/releases/download/v$gv.windows.1/Git-$gv-$arch-bit.exe"
+    $exe  = "$env:TEMP\sincro-git.exe"
+    Write-Info "winget no sirvio: descargando Git $gv directo de github.com ($arch-bit)..."
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $url -OutFile $exe -UseBasicParsing -ErrorAction Stop
+        cmd /c "`"$exe`" /VERYSILENT /NORESTART /SUPPRESSMSGBOXES /NOCANCEL" 2>&1 | Out-Null
+        Update-Path
+        if (Test-Cmd "git") { Write-Ok "git instalado (descarga directa)"; return $true }
+        Write-Warn2 "git instalado pero no aparece en PATH; reinicia la terminal."
+    } catch {
+        Write-Warn2 "Descarga directa de git fallo: $($_.Exception.Message)"
+    }
     return $false
 }
 
@@ -139,7 +193,11 @@ function Test-Python {
 
 # Node.js >= 18
 if ((Get-MajorVersion "node") -ge 18) { Write-Ok "Node.js presente" }
-else { Install-Pkg "OpenJS.NodeJS.LTS" "Node.js LTS" "node" "https://nodejs.org" | Out-Null }
+else {
+    if (-not (Install-Pkg "OpenJS.NodeJS.LTS" "Node.js LTS" "node" "https://nodejs.org")) {
+        Install-NodeDirect | Out-Null
+    }
+}
 
 # Python >= 3.10
 if (Test-Python) { Write-Ok "Python presente" }
@@ -150,7 +208,11 @@ else {
 
 # git
 if (Test-Cmd "git") { Write-Ok "git presente" }
-else { Install-Pkg "Git.Git" "git" "git" "https://git-scm.com/download/win" | Out-Null }
+else {
+    if (-not (Install-Pkg "Git.Git" "git" "git" "https://git-scm.com/download/win")) {
+        Install-GitDirect | Out-Null
+    }
+}
 
 # VSCode
 if (Test-Cmd "code") { Write-Ok "VSCode presente" }
@@ -201,9 +263,18 @@ Write-Step "FASE 2 - Ruflo"
 if (-not (Test-Path $InstallDir)) { New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null }
 Push-Location $InstallDir
 try {
-    npm install -g ruflo@latest | Out-Null
-    npx -y ruflo@latest init    | Out-Null
-    Write-Ok "Ruflo instalado e inicializado en $InstallDir"
+    # install: sin stdin para que ningun prompt lo cuelgue
+    cmd /c "npm install -g ruflo@latest <nul" 2>&1 | Out-Null
+    # init: a veces espera input -> stdin nulo + timeout duro (120s). Si se pasa, lo matamos.
+    $p = Start-Process -FilePath "cmd.exe" `
+            -ArgumentList "/c npx -y ruflo@latest init <nul" `
+            -WorkingDirectory $InstallDir -WindowStyle Hidden -PassThru
+    if ($p.WaitForExit(120000)) {
+        Write-Ok "Ruflo instalado e inicializado en $InstallDir"
+    } else {
+        try { $p.Kill() } catch {}
+        Write-Warn2 "Ruflo init tardo demasiado; se omitio (Ruflo es secundario, el entorno funciona igual)."
+    }
 } catch { Write-Warn2 "Ruflo fallo: $($_.Exception.Message)" }
 Pop-Location
 
@@ -275,4 +346,5 @@ Write-Host @"
   Log de instalacion: $LogFile
 "@ -ForegroundColor White
 
+Write-Progress -Activity "Instalando Sincro IA" -Completed
 exit 0

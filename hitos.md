@@ -104,3 +104,16 @@
 - **ONBOARDING agregado** (Capa B): `EMPEZAR-AQUI.html` (4 pasos, se abre al terminar via [Run]) + `Iniciar Sincro IA.bat` (abre VSCode en el entorno) + accesos directos Escritorio/Menú Inicio con logo.ico ([Icons]).
 - Web: `_headers` con no-cache para /descargas/* (clientes siempre bajan el último .exe).
 - ESTADO: PRODUCTO COMPLETO Y PROBADO EN PC LIMPIA. Falta solo: conectar dominio (propagando), (opcional) email Resend + firma de código.
+
+## 2026-06-27 (cont.) — Pivote a GRATIS (clave en popup, sin pago)
+- Pedido: gratis por ahora, clave generada en popup de la misma web (sin redirect a pago), botón de descarga más grande.
+- Worker: endpoint **`/generar-gratis`** (POST email → valida formato → reusa clave si el email ya tiene una (`email:<email>`) o genera SINC-XXXX-XXXX-XXXX nueva, guarda en KV `lic:<clave>` con payment_id="GRATIS", email Resend opcional). Deployado + probado (devolvió SINC-6AHK-BECV-TTAB).
+- Web: modal 2 pasos (#paso1 email → obtener() POST /generar-gratis → #paso2 muestra .claveout + botón grande "⬇ Descargar instalador"). CTAs a "Descargar gratis", botón hero agrandado (18px/18-38 padding), sección precio → "GRATIS"/"lanzamiento". Deployada en Pages + push.
+- **El flujo de pago Mercado Pago queda intacto en el código** (Checkout Pro /crear-pago + /webhook firmado) para reactivar cuando se quiera cobrar.
+- ESTADO: PRODUCTO GRATIS EN LÍNEA, e2e funcional (web → email → clave → descarga → instalador → entorno). Falta: conectar dominio (propagando), (opcional) email Resend + firma de código.
+
+## 2026-06-27 (cont.) — Dominio conectado + cierre de pendientes
+- **Dominio sincro-ia.com.ar CONECTADO** a CF Pages.
+- **Email Resend:** no hace falta por ahora (entrega = clave en el popup de la web). Pendiente futuro, no bloqueante.
+- **Firma de código: DESCARTADA por ahora.** Certificado cuesta USD ~200-400/año (OV); sin venta no se justifica. El .exe queda sin firmar → SmartScreen muestra "Más información → Ejecutar de todas formas". Reconsiderar cuando el producto venda.
+- ESTADO: PRODUCTO TERMINADO Y EN PRODUCCIÓN. Sin pendientes bloqueantes.
