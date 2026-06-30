@@ -45,6 +45,16 @@ chmod +x install.sh
 ```
 Distribución: empaquetar `install.sh` + `plantilla/` en un `.tar.gz` (el script espera `./plantilla` al lado, o pasar `--template`).
 
+### Instalación de cero en Ubuntu/Xubuntu (comando único)
+Recomendado para notebook vieja como servidor: **Xubuntu 24.04 LTS 64-bit** (8 GB RAM va sobrado). Tras instalar el SO, en una terminal:
+```bash
+sudo apt update && sudo apt install -y git && \
+git clone https://github.com/agustinhfernandez-create/sincro-ia.git ~/sincro-src && \
+cd ~/sincro-src/instalador && chmod +x install.sh && \
+./install.sh --template ../plantilla --license "TU-CLAVE" --gemini "TU-GEMINI-KEY"
+```
+Clona el repo y corre las 8 fases. Al terminar muestra cómo conectarse por Remote-SSH o `code tunnel`. La `plantilla/` está al lado del `instalador/` en el repo (por eso `--template ../plantilla`).
+
 ## setup.iss (Inno Setup) — HECHO, falta compilar
 `setup.iss` ya está. Empaqueta `bootstrap.ps1` + la carpeta `plantilla/`, muestra un wizard
 (pide licencia + Gemini key), y al terminar corre `bootstrap.ps1` con esos datos.
