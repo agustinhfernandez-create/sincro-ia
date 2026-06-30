@@ -127,23 +127,24 @@ echo "###############################################"
 echo "#         Sincro IA - Instalador (Linux)      #"
 echo "###############################################"
 
-# Pedir credenciales si faltan
-[ -z "$LICENSE_KEY" ] && read -rp "Clave de licencia: " LICENSE_KEY
+# Gemini key opcional (la licencia NO se pide: en Linux es gratis y no bloquea)
 [ -z "$GEMINI_KEY" ]  && read -rp "Gemini API key (opcional, Enter para omitir): " GEMINI_KEY
 
 # ====================================================================
-# FASE -1 : Validar licencia con el Worker (GATE)
+# FASE -1 : Licencia (no-bloqueante: Sincro IA es gratis)
+#   Si pasas --license intenta validarla best-effort, pero nunca corta.
 # ====================================================================
-step "Validando licencia"
-MACHINE_ID="$( (cat /etc/machine-id 2>/dev/null) || (cat /var/lib/dbus/machine-id 2>/dev/null) || hostname )"
-if ! have_cmd curl; then pkg_install curl || die "Necesito 'curl' para validar la licencia."; fi
-RESP="$(curl -s -X POST "$LICENSE_API/validate" \
-        -H "Content-Type: application/json" \
-        -d "{\"license_key\":\"$LICENSE_KEY\",\"machine_id\":\"$MACHINE_ID\"}" 2>>"$LOG_FILE")"
-if echo "$RESP" | grep -q '"valid":[[:space:]]*true'; then
-    ok "Licencia valida"
+step "Licencia"
+if ! have_cmd curl; then pkg_install curl || true; fi
+if [ -n "$LICENSE_KEY" ] && have_cmd curl; then
+    MACHINE_ID="$( (cat /etc/machine-id 2>/dev/null) || (cat /var/lib/dbus/machine-id 2>/dev/null) || hostname )"
+    RESP="$(curl -s -X POST "$LICENSE_API/validate" \
+            -H "Content-Type: application/json" \
+            -d "{\"license_key\":\"$LICENSE_KEY\",\"machine_id\":\"$MACHINE_ID\"}" 2>>"$LOG_FILE")"
+    if echo "$RESP" | grep -q '"valid":[[:space:]]*true'; then ok "Licencia valida"
+    else warn "Licencia no validada (sigo igual, es gratis). Respuesta: $RESP"; fi
 else
-    die "Licencia invalida o sin conexion. Respuesta: $RESP"
+    ok "Sin licencia: instalacion gratuita, continuo."
 fi
 
 # ====================================================================
