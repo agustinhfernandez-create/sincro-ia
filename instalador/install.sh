@@ -20,7 +20,17 @@ set -uo pipefail   # NO set -e: ningun hipo de un prerrequisito debe abortar tod
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LICENSE_KEY="${LICENSE_KEY:-}"
 GEMINI_KEY="${GEMINI_KEY:-}"
-TEMPLATE_DIR="${TEMPLATE_DIR:-$SCRIPT_DIR/plantilla}"
+# La plantilla puede estar junto al script (.exe Windows lo empaqueta asi) o un
+# nivel arriba (layout del repo: instalador/ y plantilla/ son hermanos).
+if [ -n "${TEMPLATE_DIR:-}" ]; then
+    :
+elif [ -d "$SCRIPT_DIR/plantilla" ]; then
+    TEMPLATE_DIR="$SCRIPT_DIR/plantilla"
+elif [ -d "$SCRIPT_DIR/../plantilla" ]; then
+    TEMPLATE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/plantilla"
+else
+    TEMPLATE_DIR="$SCRIPT_DIR/plantilla"
+fi
 INSTALL_DIR="${INSTALL_DIR:-$HOME/SincroIA}"
 LICENSE_API="${LICENSE_API:-https://sincro-ia-licencias.agustinhfernandez.workers.dev}"
 LOG_FILE="${TMPDIR:-/tmp}/sincro-ia-install.log"
@@ -206,6 +216,19 @@ fi
 # Asegurar npm en PATH (nvm) para esta sesion
 export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
 
+# Si node viene del sistema (apt: prefix /usr), 'npm install -g' da EACCES sin root.
+# Redirigimos el prefix global a ~/.npm-global (userland) y lo ponemos en PATH.
+NPM_GLOBAL="$HOME/.npm-global"
+if have_cmd npm; then
+    NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
+    if [ ! -w "$NPM_PREFIX/lib/node_modules" ] 2>/dev/null || [ "$NPM_PREFIX" = "/usr" ] || [ "$NPM_PREFIX" = "/usr/local" ]; then
+        mkdir -p "$NPM_GLOBAL"
+        npm config set prefix "$NPM_GLOBAL" >/dev/null 2>&1
+        export PATH="$NPM_GLOBAL/bin:$PATH"
+        info "npm prefix global redirigido a $NPM_GLOBAL (evita EACCES sin sudo)"
+    fi
+fi
+
 # Claude Code CLI (npm global)
 if have_cmd claude; then ok "Claude Code presente"; else
     info "Instalando Claude Code CLI..."
@@ -213,6 +236,15 @@ if have_cmd claude; then ok "Claude Code presente"; else
         npm install -g @anthropic-ai/claude-code </dev/null >>"$LOG_FILE" 2>&1
         if have_cmd claude; then ok "Claude Code instalado"; else warn "No se pudo instalar Claude Code CLI."; fi
     else warn "npm no disponible (falta Node). Claude Code no instalado."; fi
+fi
+
+# claude-flow CLI (provee el comando 'claude-flow' que usa CLAUDE.md; aparte de ruflo)
+if have_cmd claude-flow; then ok "claude-flow presente"; else
+    info "Instalando claude-flow CLI..."
+    if have_cmd npm; then
+        npm install -g claude-flow@alpha </dev/null >>"$LOG_FILE" 2>&1
+        if have_cmd claude-flow; then ok "claude-flow instalado"; else warn "No se pudo instalar claude-flow (Ruflo es secundario, sigue)."; fi
+    else warn "npm no disponible: claude-flow no instalado."; fi
 fi
 
 # ====================================================================
@@ -336,7 +368,7 @@ step "FASE 6 - Persistir PATH para sesiones SSH"
 PATH_SNIPPET='# >>> Sincro IA PATH >>>
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 # <<< Sincro IA PATH <<<'
 for RC in "$HOME/.bashrc" "$HOME/.profile"; do
     if [ -f "$RC" ] && grep -q "Sincro IA PATH" "$RC" 2>/dev/null; then

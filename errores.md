@@ -31,7 +31,10 @@ Registro de errores y sus soluciones. Formato: fecha · síntoma · causa · sol
 - **Problema 2 — PATH en sesiones SSH no-interactivas:** node/npm (nvm), `claude`, `claude-flow`, `uv`, `graphify` viven en `~/.nvm` y `~/.local/bin`; un shell SSH no-interactivo o el que spawnea `code tunnel`/MCP no los carga → "command not found".
   - **Solución:** FASE 6 nueva persiste un snippet PATH idempotente en `~/.bashrc` y `~/.profile` (nvm + `~/.local/bin` + `~/.cargo/bin`). FASE 7 verifica node/npm/claude/claude-flow/uv/graphify/notebooklm/code/git.
 - **Ojo herramientas:** `claude-flow` NO se instala aparte — lo provee `ruflo` (igual que en Windows). `notebooklm-py[browser]` usa Playwright/Chromium: en Linux puede pedir libs del sistema y `notebooklm login` requiere GUI (Mint la tiene). Mint 22 = base Ubuntu 24.04 → `apt`, soportado por install.sh.
-- **Pendiente:** el fix vive en la copia local; hay que commitear+pushear para que `git clone` en la Mint lo traiga.
+- **Problema 3 — plantilla no encontrada:** por `git clone` la plantilla está en `sincro-ia/plantilla` (hermana de `instalador/`), no en `instalador/plantilla`. FASE 5 abortaba. Fix: `TEMPLATE_DIR` ahora prueba `$SCRIPT_DIR/plantilla` y cae a `$SCRIPT_DIR/../plantilla`.
+- **Problema 4 — EACCES en `npm install -g` (el más común en Linux):** si node viene de apt, el prefix global es `/usr` → sin sudo da `EACCES mkdir /usr/lib/node_modules`. Claude Code y el `ruflo` global fallaban silenciosos (el script imprimía OK igual). Fix: FASE 0 detecta prefix no-escribible y lo redirige a `~/.npm-global` + PATH. Manual: `npm config set prefix ~/.npm-global` y agregar `~/.npm-global/bin` al PATH.
+- **Problema 5 — `claude-flow` no se instalaba:** el comando `claude-flow` que usa CLAUDE.md lo da el paquete npm `claude-flow@alpha`, NO `ruflo` (asunción vieja: ruflo no provee ese binario). Fix: FASE 0 instala `claude-flow@alpha` global aparte de ruflo. `~/.npm-global/bin` sumado al PATH persistente de FASE 6.
+- **Verificado en Mint 22 (2026-07-01):** instalación OK salvo estos 5; tras los fixes las 9 herramientas verdes. `ruflo init` puede devolver código 1 (no crítico, Ruflo es secundario). VSCode/sshd/graphify/notebooklm/uv/code sin problemas por SSH; `notebooklm login` requiere GUI (no por SSH).
 
 ---
 
