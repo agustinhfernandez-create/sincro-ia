@@ -39,7 +39,7 @@ done
 # Helpers de log + barra de progreso
 # --------------------------------------------------------------------
 C_CYAN='\033[36m'; C_GREEN='\033[32m'; C_YELLOW='\033[33m'; C_RED='\033[31m'; C_OFF='\033[0m'
-STEP_N=0; STEP_TOTAL=8
+STEP_N=0; STEP_TOTAL=10
 
 : > "$LOG_FILE"
 echo "Sincro IA - instalacion $(date)" >> "$LOG_FILE"
@@ -270,6 +270,42 @@ step "FASE 5 - Andamiaje Sincro IA (Capa B)"
 cp -rf "$TEMPLATE_DIR/." "$INSTALL_DIR/"
 ok "Capa B desplegada (CLAUDE.md, .mcp.json, scripts, skills propias)"
 
+# La plantilla trae .mcp.json con "cmd /c npx ..." (Windows). En Linux/macOS
+# hay que invocar npx directo o los MCP no arrancan. Reescribimos la version nativa.
+cat > "$INSTALL_DIR/.mcp.json" <<'EOF'
+{
+  "mcpServers": {
+    "claude-flow": {
+      "command": "npx",
+      "args": ["-y", "@claude-flow/cli@latest", "mcp", "start"],
+      "env": {
+        "npm_config_update_notifier": "false",
+        "CLAUDE_FLOW_MODE": "v3",
+        "CLAUDE_FLOW_HOOKS_ENABLED": "true",
+        "CLAUDE_FLOW_TOPOLOGY": "hierarchical-mesh",
+        "CLAUDE_FLOW_MAX_AGENTS": "15",
+        "CLAUDE_FLOW_MEMORY_BACKEND": "hybrid"
+      },
+      "autoStart": false
+    },
+    "ruv-swarm": {
+      "command": "npx",
+      "args": ["-y", "ruv-swarm", "mcp", "start"],
+      "env": { "npm_config_update_notifier": "false" },
+      "optional": true
+    },
+    "flow-nexus": {
+      "command": "npx",
+      "args": ["-y", "flow-nexus@latest", "mcp", "start"],
+      "env": { "npm_config_update_notifier": "false" },
+      "optional": true,
+      "requiresAuth": true
+    }
+  }
+}
+EOF
+ok ".mcp.json adaptado a Linux/macOS (npx directo, sin cmd /c)"
+
 mkdir -p "$INSTALL_DIR/Workspace/Proyectos"
 
 ENV_PATH="$INSTALL_DIR/.env"
@@ -291,6 +327,43 @@ exec code tunnel --accept-server-license-terms --name "sincro-ia"
 EOF
 chmod +x "$TUNNEL_SH"
 if have_cmd code; then ok "Tunnel listo: ejecuta $TUNNEL_SH (o 'code tunnel')"; fi
+
+# ====================================================================
+# FASE 6 : Persistir PATH (clave para servidor via SSH / code tunnel)
+#   Un shell SSH no-interactivo no carga node/uv/claude si no estan en el rc.
+# ====================================================================
+step "FASE 6 - Persistir PATH para sesiones SSH"
+PATH_SNIPPET='# >>> Sincro IA PATH >>>
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+# <<< Sincro IA PATH <<<'
+for RC in "$HOME/.bashrc" "$HOME/.profile"; do
+    if [ -f "$RC" ] && grep -q "Sincro IA PATH" "$RC" 2>/dev/null; then
+        continue
+    fi
+    printf '\n%s\n' "$PATH_SNIPPET" >> "$RC"
+done
+ok "PATH persistido en ~/.bashrc y ~/.profile (node, npm, claude, uv, graphify)"
+
+# Cargar para la verificacion de abajo
+export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+# ====================================================================
+# FASE 7 : Verificacion de herramientas
+# ====================================================================
+step "FASE 7 - Verificacion"
+check_tool() { if have_cmd "$1"; then ok "$1 OK"; else warn "$1 NO encontrado (revisar log / PATH)"; fi; }
+check_tool node
+check_tool npm
+check_tool claude
+check_tool claude-flow
+check_tool uv
+check_tool graphify
+check_tool notebooklm
+check_tool code
+check_tool git
 
 # ====================================================================
 # Cierre

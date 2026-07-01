@@ -24,5 +24,16 @@ Registro de errores y sus soluciones. Formato: fecha · síntoma · causa · sol
 
 ---
 
+## 2026-06-30 · Instalador Linux (install.sh): .mcp.json Windows-only + PATH en SSH
+- **Contexto:** montar el entorno en notebook Linux Mint 22 para usarla de servidor (Remote-SSH / code tunnel).
+- **Problema 1 — .mcp.json:** la plantilla trae `"command":"cmd","/c","npx",...` (Windows). En Linux/macOS los MCP (claude-flow, ruv-swarm, flow-nexus) no arrancan.
+  - **Solución:** `install.sh` FASE 5 reescribe `.mcp.json` con `"command":"npx"` directo tras copiar la plantilla. La plantilla Windows queda intacta.
+- **Problema 2 — PATH en sesiones SSH no-interactivas:** node/npm (nvm), `claude`, `claude-flow`, `uv`, `graphify` viven en `~/.nvm` y `~/.local/bin`; un shell SSH no-interactivo o el que spawnea `code tunnel`/MCP no los carga → "command not found".
+  - **Solución:** FASE 6 nueva persiste un snippet PATH idempotente en `~/.bashrc` y `~/.profile` (nvm + `~/.local/bin` + `~/.cargo/bin`). FASE 7 verifica node/npm/claude/claude-flow/uv/graphify/notebooklm/code/git.
+- **Ojo herramientas:** `claude-flow` NO se instala aparte — lo provee `ruflo` (igual que en Windows). `notebooklm-py[browser]` usa Playwright/Chromium: en Linux puede pedir libs del sistema y `notebooklm login` requiere GUI (Mint la tiene). Mint 22 = base Ubuntu 24.04 → `apt`, soportado por install.sh.
+- **Pendiente:** el fix vive en la copia local; hay que commitear+pushear para que `git clone` en la Mint lo traiga.
+
+---
+
 ## 2026-06-29 · Instalador: el reintento sin flag de winget NO alcanzó (winget roto)
 - **Update:** el reintento sin flag NO alcanzó (winget roto/desactualizado del todo en esa máquina, o se corrió el .exe viejo). Solución definitiva: **fallback de descarga directa sin winget** en `bootstrap.ps1` — `Install-NodeDirect` (MSI oficial nodejs.org v20.18.1, msiexec /qn, con TLS1.2 forzado) e `Install-GitDirect` (Git for Windows silencioso). Se llaman si `Install-Pkg` (winget) falla. .exe recompilado. Links manuales: Node `https://nodejs.org/dist/v20.18.1/node-v20.18.1-x64.msi`, Git `https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe`.
